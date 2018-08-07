@@ -1,0 +1,8 @@
+<?php
+/**
+* This is a demo file to show how to load the bootstrap_beanworker.
+* This file must put to the project root dir and be named `beanworker.php`.
+* BeanWorker will search the file named `beanworker.php` in the project root dir by default to load the bootstrap.
+**/
+
+return require __DIR__ . '/bootstrap/bootstrap_beanworker.php';
