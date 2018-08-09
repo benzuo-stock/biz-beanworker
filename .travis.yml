@@ -15,7 +15,7 @@ before_install:
   - composer install
 
 script:
-  - phpunit --coverage-text --colors=never
+  - vendor/bin/phpunit
 
 cache:
   directories:
