@@ -15,7 +15,7 @@ before_install:
   - composer install
 
 script:
-  - phpunit -c app/ --coverage-text --colors=never
+  - phpunit --coverage-text --colors=never
 
 cache:
   directories:
