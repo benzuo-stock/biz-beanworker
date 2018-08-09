@@ -86,15 +86,11 @@ class BeanWorker
         echo "BeanWorker master#{$pid} stopping...\n";
         $this->logger->info("master#{$pid} stopping...");
 
-        if (swoole_process::kill($pid, 15)) {
-            echo "BeanWorker master#{$pid} stopped.\n";
-            $this->logger->info("master#{$pid} stopped.");
+        swoole_process::kill($pid, SIGKILL);
+        echo "BeanWorker master#{$pid} stopped.\n";
+        $this->logger->info("master#{$pid} stopped.");
 
-            $this->masterPidManager->clear();
-        } else {
-            echo "BeanWorker master#{$pid} stop failed.\n";
-            $this->logger->info("master#{$pid} stop failed.");
-        }
+        $this->masterPidManager->clear();
 
         return $pid;
     }
@@ -179,7 +175,8 @@ class BeanWorker
             $this->masterPidManager->clear();
         };
 
-        swoole_process::signal(SIGTERM, $onTerminated);
         swoole_process::signal(SIGINT, $onTerminated);
+        swoole_process::signal(SIGTERM, $onTerminated);
+        swoole_process::signal(SIGKILL, $onTerminated);
     }
 }
