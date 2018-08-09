@@ -1,8 +1,8 @@
 <?php
 
-namespace Biz\BeanWorker\Process;
+namespace BeanWorker\Process;
 
-use Swoole\Process;
+use \swoole_process;
 
 class PidManager
 {
@@ -20,9 +20,11 @@ class PidManager
 
     public function get()
     {
-        $pid = (int) file_get_contents($this->pidFile);
-        if ($pid && Process::kill($pid, 0)) {
-            return $pid;
+        if (file_exists($this->pidFile)) {
+            $pid = (int) file_get_contents($this->pidFile);
+            if ($pid && swoole_process::kill($pid, 0)) {
+                return $pid;
+            }
         }
 
         return -1;

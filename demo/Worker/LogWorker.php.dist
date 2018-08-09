@@ -1,0 +1,27 @@
+<?php
+
+namespace Biz\Queue\Worker;
+
+use BeanWorker\Worker\AbstractWorker;
+
+class LogWorker extends AbstractWorker
+{
+    public function execute($jobId, array $data)
+    {
+        $this->getLogService()->info($data['module'], $data['action'], "Job#{$jobId} executed", $data['data']);
+
+        // finish job
+        return ['code' => self::FINISH];
+
+        // retry job
+        // return ['code' => self::RETRY, 'pri' => 1024, 'delay' => 3];
+    }
+
+    /**
+     * @return \Biz\System\Service\LogService
+     */
+    protected function getLogService()
+    {
+        return $this->container['biz']->service('System:LogService');
+    }
+}

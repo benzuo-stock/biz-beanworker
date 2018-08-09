@@ -1,33 +1,58 @@
 <?php
 
-namespace Biz\BeanWorker;
+namespace BeanWorker;
 
 use Pimple\Container;
 use Monolog\Logger;
 use Monolog\Handler\StreamHandler;
+use BeanWorker\Process\PidManager;
 
 class BeanWorkerBootstrap
 {
     protected $biz;
 
-    protected $options;
-
-    public function __construct(Container $biz, array $options)
+    public function __construct(Container $biz)
     {
         $this->biz = $biz;
-        $this->options = $options;
     }
 
     public function boot()
     {
+        $this->checkBiz();
+
         $container = new Container();
-        $container['options'] = $this->options;
+        $options = $this->biz['queue.options'];
+        $workerOptions = $options['worker'];
+        unset($options['worker']);
+
         $container['biz'] = $this->biz;
-        $container['pid_file'] = realpath($this->biz['data_directory']).'/beanworker.pid';
-        $container['logger'] = function ($container) {
-            return new Logger('beanWorker', new StreamHandler(realpath($container['biz']['log_directory']).'/beanworker-'.date('Ymd', time()).'.log'));
+        $container['options'] = $options;
+        $container['worker.daemonize'] = $workerOptions['daemonize'] ?? true;
+        $container['worker.tubes'] = $workerOptions['tubes'];
+        $container['worker.reserve_timeout'] = $workerOptions['reserve_timeout'] ?? 3600;
+
+        $container['master_pid_manager'] = function () use ($container) {
+            return new PidManager(realpath($this->biz['data_directory']).'/beanworker.pid');
+        };
+        $container['logger'] = function () use ($container) {
+            return new Logger('beanworker_worker', [new StreamHandler(realpath($container['biz']['log_directory']).'/beanworker_worker'.date('Ymd', time()).'.log')]);
         };
 
         return $container;
+    }
+
+    private function checkBiz()
+    {
+        if (empty($this->biz['queue.options'])) {
+            exit("biz['queue.options'] does not exist \n");
+        }
+
+        if (empty($this->biz['data_directory']) || !is_dir($this->biz['data_directory'])) {
+            exit("biz['data_directory'] does not exist \n");
+        }
+
+        if (empty($this->biz['log_directory']) || !is_dir($this->biz['log_directory'])) {
+            exit("biz['log_directory'] does not exist \n");
+        }
     }
 }

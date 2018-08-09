@@ -1,24 +1,25 @@
 <?php
 
-namespace Biz\BeanWorker;
+namespace BeanWorker;
 
-use Pheanstalk\Pheanstalk;
-use Biz\BeanWorker\Worker\JobInterface;
+use Beanstalk\Client;
+use Psr\Log\LoggerInterface;
 
 class BeanProducer
 {
     protected $client;
 
-    public function __construct(array $config)
+    public function __construct(array $options, LoggerInterface $logger = null)
     {
-        $config = array_merge([
+        $options = array_merge([
             'host' => '127.0.0.1',
             'port' => 11300,
-            'timeout' => 1,
+            'timeout' => 3,
             'persistent' => true,
-        ], $config);
+            'logger' => $logger,
+        ], $options);
 
-        $this->client = new Pheanstalk($config['host'], $config['port'], $config['timeout'], $config['persistent']);
+        $this->client = new Client($options);
     }
 
     public function stats()
@@ -49,23 +50,23 @@ class BeanProducer
         return $this;
     }
 
-    public function ignore($tube)
+    public function put($data, $ttr = 60, $delay = 0, $pri = 1024)
     {
-        $this->client->ignore($tube);
+        $this->client->put($pri, $delay, $ttr, $data);
 
         return $this;
     }
 
-    public function put($data)
+    public function statsJob($jobId)
     {
-        $this->client->put($data);
+        $this->client->statsJob($jobId);
 
         return $this;
     }
 
-    public function statsJob(JobInterface $job)
+    public function kickJob($jobId)
     {
-        $this->client->statsJob($job);
+        $this->client->kickJob($jobId);
 
         return $this;
     }

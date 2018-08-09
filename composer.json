@@ -10,15 +10,18 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Tests\\": "tests/"
+            "Tests\\": "tests/",
+            "TestProject\\": "tests/TestProject/src/"
         }
     },
     "require": {
         "php": "^7.1",
         "pimple/pimple": "^3.0",
-        "monolog/monolog": "^1.0"
+        "monolog/monolog": "^1.0",
+        "davidpersson/beanstalk": "^2.0"
     },
     "require-dev": {
         "phpunit/phpunit": "^6.0"
-    }
+    },
+    "bin": ["bin/beanworker"]
 }

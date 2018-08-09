@@ -1,10 +1,12 @@
 <?php
 
-namespace Biz\BeanWorker\Provider;
+namespace BeanWorker\Provider;
 
 use Pimple\Container;
 use Pimple\ServiceProviderInterface;
-use Biz\BeanWorker\BeanProducer;
+use BeanWorker\BeanProducer;
+use Monolog\Logger;
+use Monolog\Handler\StreamHandler;
 
 class BeanProducerServiceProvider implements ServiceProviderInterface
 {
@@ -12,8 +14,12 @@ class BeanProducerServiceProvider implements ServiceProviderInterface
     {
         $options = $biz['queue.options'];
 
+        $biz['queue.logger'] = function ($biz) {
+            return new Logger('beanworker_producer', [new StreamHandler(realpath($biz['log_directory']).'/beanworker_producer'.date('Ymd', time()).'.log')]);
+        };
+
         $biz['queue.producer'] = function ($biz) use ($options) {
-            return new BeanProducer($options);
+            return new BeanProducer($options, $biz['queue.logger']);
         };
     }
 }

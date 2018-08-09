@@ -1,0 +1,25 @@
+dist: trusty
+
+branches:
+  - master
+  - develop
+
+language: php
+php:
+  - '7.1'
+
+before_install:
+  - sudo apt-get update
+  - sudo apt-get install beanstalkd
+  - pecl instal swoole
+  - composer install
+
+script:
+  - beanstalkd -l 127.0.0.1 -p 11300 &
+  - phpunit --coverage-clover=reports/phpunit.coverage.xml
+
+cache:
+  directories:
+    - $HOME/.composer/cache
+
+

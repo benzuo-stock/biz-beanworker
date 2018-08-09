@@ -11,7 +11,10 @@ A beanstalkd-based queue worker framework.
 
 ## Usage
 
- see demo dir
+ 1. put a file named `beanworker.php` to the project root dir, see `demo/beanworker.php.dist`
+ 2. put the `bootstrap_beanworker.php` to the right place of your project, see `demo/bootstrap_beanworker.php.dist`
+ 3. write your Worker to handle job, see `demo/Worker/LogWorker.php.dist`
+ 4. run `bin/beanworker` from your project root dir
 
 ## Config
 
@@ -39,7 +42,11 @@ parameters:
 
     biz_queue_options:
         host: "127.0.0.1"
-        port: "11300"
+        port: 11300
+        worker:
+          daemonize: true
+          tubes:
+            logger: {worker_num: 3, class: Biz\Queue\Worker\LogWorker}
 
 services:
     biz:
