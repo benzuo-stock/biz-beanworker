@@ -29,7 +29,7 @@ class BeanWorkerBootstrap
         $container['options'] = $options;
         $container['worker.daemonize'] = $workerOptions['daemonize'] ?? true;
         $container['worker.tubes'] = $workerOptions['tubes'];
-        $container['worker.reserve_timeout'] = $workerOptions['reserve_timeout'] ?? 3600;
+        $container['worker.reserve_timeout'] = $workerOptions['reserve_timeout'] ?? 60;
 
         $container['master_pid_manager'] = function () use ($container) {
             return new PidManager(realpath($this->biz['data_directory']).'/beanworker.pid');

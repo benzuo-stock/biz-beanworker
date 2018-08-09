@@ -9,6 +9,7 @@ $bizConfig = [
         'port' => 11300,
         'worker' => [
             'daemonize' => true,
+            'reserve_timeout' => 2,
             'tubes' => [
                 'test' => [
                     'worker_num' => 3,

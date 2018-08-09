@@ -68,15 +68,15 @@ class WorkerProcessHandler
     public function start()
     {
         if (!$this->beanstalk->connect()) {
-            $this->terminateProcess('beanstalk connect failed on start');
-
+            $this->logger->error("worker#{$this->process->pid} terminated, error: beanstalk connect failed on start");
+            $this->process->exit(0);
             return;
         }
 
         // If the tube to watch doesn't exist, it will be created.
         if (!$this->beanstalk->watch($this->tubeName)) {
-            $this->terminateProcess("beanstalk watch tube#{$this->tubeName} failed on start");
-
+            $this->logger->error("worker#{$this->process->pid} terminated, error: beanstalk watch tube#{$this->tubeName} failed on start");
+            $this->process->exit(0);
             return;
         }
 
@@ -84,7 +84,8 @@ class WorkerProcessHandler
 
         while (true) {
             if (!$this->masterPidManager->isRunning()) {
-                $this->terminateProcess("master#{$this->masterPidManager->get()} is stopped");
+                $this->logger->error("worker#{$this->process->pid} terminated, error: master was terminated");
+                $this->process->exit(0);
             }
 
             if (false === $job = $this->reserveJob()) {
@@ -176,11 +177,5 @@ class WorkerProcessHandler
     private function initWorker($workerClass)
     {
         return new $workerClass($this->container);
-    }
-
-    private function terminateProcess($error)
-    {
-        $this->logger->error("worker#{$this->process->pid} terminated, error: {$error}");
-        $this->process->exit();
     }
 }
