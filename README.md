@@ -1,7 +1,7 @@
 Biz BeanWorker
 =========
 
-A beanstalkd-based queue worker framework.
+A beanstalkd and swoole based queue worker framework.
 
 ## Runtime
 
