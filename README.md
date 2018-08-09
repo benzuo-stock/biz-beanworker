@@ -1,6 +1,8 @@
 Biz BeanWorker
 =========
 
+[![Build Status](https://travis-ci.org/benzuo-stock/biz-beanworker.svg?branch=master)](https://travis-ci.org/benzuo-stock/biz-beanworker)
+
 A beanstalkd and swoole based queue worker framework.
 
 ## Runtime
