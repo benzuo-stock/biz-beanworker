@@ -11,12 +11,11 @@ php:
 before_install:
   - sudo apt-get update
   - sudo apt-get install beanstalkd
-  - pecl instal swoole
+  - pecl install swoole
   - composer install
 
 script:
-  - beanstalkd -l 127.0.0.1 -p 11300 &
-  - phpunit --coverage-clover=reports/phpunit.coverage.xml
+  - phpunit -c app/ --coverage-text --colors=never
 
 cache:
   directories:
