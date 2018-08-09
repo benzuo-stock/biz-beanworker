@@ -1,2 +1,3 @@
 app/data/*.pid
+app/data/*.job
 app/logs

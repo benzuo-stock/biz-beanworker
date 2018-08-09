@@ -8,7 +8,8 @@ class TestWorker extends AbstractWorker
 {
     public function execute($jobId, array $data)
     {
-        echo "Job#{$jobId} executed with data ".json_encode($data);
+        $testFile = $this->container['biz']['data_directory'].'/test.job';
+        file_put_contents($testFile, $data['content']);
 
         return ['code' => self::FINISH];
     }

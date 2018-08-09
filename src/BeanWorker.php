@@ -77,8 +77,7 @@ class BeanWorker
     {
         if (!$this->masterPidManager->isRunning()) {
             echo "ERROR: BeanWorker master is not running.\n";
-
-            return -1;
+            return;
         }
 
         $pid = $this->masterPidManager->get();
@@ -86,24 +85,21 @@ class BeanWorker
         echo "BeanWorker master#{$pid} stopping...\n";
         $this->logger->info("master#{$pid} stopping...");
 
-        swoole_process::kill($pid, SIGKILL);
         echo "BeanWorker master#{$pid} stopped.\n";
         $this->logger->info("master#{$pid} stopped.");
 
         $this->masterPidManager->clear();
 
-        return $pid;
+        swoole_process::kill($pid, SIGTERM);
     }
 
     public function status()
     {
         if ($this->masterPidManager->isRunning()) {
             echo "BeanWorker master status is running.\n";
-            return 1;
+        } else {
+            echo "BeanWorker master status is not running.\n";
         }
-
-        echo "BeanWorker master status is not running.\n";
-        return 0;
     }
 
     private function createTubeWorkerProcesses($tube)
@@ -145,7 +141,7 @@ class BeanWorker
     {
         try {
             if (function_exists('cli_set_process_title')) {
-                cli_set_process_title($name);
+                @cli_set_process_title($name);
             } else {
                 swoole_set_process_name($name);
             }
@@ -171,6 +167,7 @@ class BeanWorker
         });
 
         $onTerminated = function ($signo) {
+            echo "master terminated({$signo}).";
             $this->logger->info("master terminated({$signo}).");
             $this->masterPidManager->clear();
         };
