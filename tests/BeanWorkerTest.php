@@ -15,59 +15,57 @@ class BeanWorkerTest extends TestCase
         $beanWorker->start();
     }
 
-    // public static function tearDownAfterClass()
-    // {
-    //     $beanWorker = new BeanWorker(static::getContainer());
-    //     $beanWorker->stop();
-    // }
-
     public function testStart()
     {
         $beanWorker = new BeanWorker(static::getContainer());
-        $getPidCmd = 'ps -A |grep phpunit |awk \'$0 !~ /grep/ {print $1}\'';
 
         $this->assertEquals(true, $beanWorker->masterPidManager->isRunning());
 
-        exec($getPidCmd, $PIDs);
+        $PIDs = $this->getMasterAndWorkerPIDs();
+        $masterPid = $PIDs['master'];
+        $workerPIDs = $PIDs['workers'];
 
-        // 1 master + 3 worker
-        $this->assertCount(4, $PIDs);
+        $this->assertCount(3, $workerPIDs);
+        $this->assertEquals(true, swoole_process::kill($masterPid, 0));
+        $this->assertEquals(true, swoole_process::kill($workerPIDs[0], 0));
+        $this->assertEquals(true, swoole_process::kill($workerPIDs[1], 0));
+        $this->assertEquals(true, swoole_process::kill($workerPIDs[2], 0));
 
-        foreach ($PIDs as $pid) {
-            $this->assertEquals(true, swoole_process::kill($pid, 0));
-        }
-
-        $masterPid = array_shift($PIDs);
-        $workerPIDs = $PIDs;
         $this->assertEquals($masterPid, $beanWorker->masterPidManager->get());
 
         swoole_process::kill($workerPIDs[0], SIGKILL);
-        exec($getPidCmd, $PIDs1);
-        $this->assertEquals(false, isset($PIDs1[$workerPIDs[0]]));
-        $this->assertEquals(2, \count($PIDs1) - 1);
+        $PIDs1 = $this->getMasterAndWorkerPIDs();
+        $this->assertEquals(false, isset($PIDs1['workers'][$workerPIDs[0]]));
+        $this->assertCount(2, $PIDs1['workers']);
 
         swoole_process::kill($workerPIDs[1], SIGKILL);
-        exec($getPidCmd, $PIDs2);
-        $this->assertEquals(false, isset($PIDs2[$workerPIDs[1]]));
-        $this->assertEquals(1, \count($PIDs2) - 1);
-
-        swoole_process::kill($workerPIDs[2], SIGKILL);
-        exec($getPidCmd, $PIDs3);
-        $this->assertEquals(false, isset($PIDs3[$workerPIDs[2]]));
-        $this->assertEquals(0, \count($PIDs3) - 1);
-    }
-
-    public function testStop()
-    {
-        $beanWorker = new BeanWorker(static::getContainer());
-        $beanWorker->stop();
-        $this->assertEquals(false, $beanWorker->masterPidManager->isRunning());
+        $PIDs2 = $this->getMasterAndWorkerPIDs();
+        $this->assertEquals(false, isset($PIDs2['workers'][$workerPIDs[1]]));
+        $this->assertCount(1, $PIDs2['workers']);
     }
 
     public static function getContainer()
     {
         $biz = require __DIR__.'/TestProject/app/biz.php';
         $bootstrap = new BeanWorkerBootstrap($biz);
-        return $bootstrap->boot();
+        $container = $bootstrap->boot();
+        $container['worker.daemonize'] = false;
+        return $container;
+    }
+
+    private function getMasterAndWorkerPIDs()
+    {
+        $cmd = 'ps -ef |grep \'%s\' |awk \'$0 !~ /grep/ {print $2}\'';
+        $PIDs = [];
+        exec(sprintf($cmd, 'beanworker:'), $PIDs);
+
+        if (empty($PIDs)) {
+            exec(sprintf($cmd, 'phpunit'), $PIDs);
+        }
+
+        return [
+            'master' => array_shift($PIDs),
+            'workers' => $PIDs,
+        ];
     }
 }

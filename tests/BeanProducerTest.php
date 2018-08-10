@@ -16,12 +16,6 @@ class BeanProducerTest extends TestCase
         $beanWorker->start();
     }
 
-    // public static function tearDownAfterClass()
-    // {
-    //     $beanWorker = new BeanWorker(static::getContainer());
-    //     $beanWorker->stop();
-    // }
-
     public function testPut()
     {
         $beanProducer = $this->getBeanProducer();
@@ -41,7 +35,9 @@ class BeanProducerTest extends TestCase
     {
         $biz = require __DIR__.'/TestProject/app/biz.php';
         $bootstrap = new BeanWorkerBootstrap($biz);
-        return $bootstrap->boot();
+        $container = $bootstrap->boot();
+        $container['worker.daemonize'] = false;
+        return $container;
     }
 
     /**

@@ -13,7 +13,7 @@ if (!file_exists(getcwd().'/beanworker.php')) {
 
 $container = require getcwd().'/beanworker.php';
 
-if (empty($argv[1]) || !in_array($argv[1], array('start', 'stop', 'status'))) {
+if (empty($argv[1]) || !in_array($argv[1], array('start', 'stop', 'restart', 'status'))) {
     exit("Usage: bin/beanworker start|stop|status\n");
 }
 

@@ -111,6 +111,13 @@ class BeanWorker
         }
     }
 
+    public function restart()
+    {
+        $this->stop();
+        sleep(1);
+        $this->start();
+    }
+
     public function status()
     {
         if ($this->masterPidManager->isRunning()) {
@@ -119,7 +126,7 @@ class BeanWorker
             echo "master is not running.\n";
         }
 
-        $workerPIDs = $this->getWorkerProcesses();
+        $workerPIDs = $this->getWorkerPIDs();
         if (!empty($workerPIDs)) {
             $workerPIDs = implode(' ', $workerPIDs);
             echo "workers#{$workerPIDs} are running.\n";
@@ -210,7 +217,7 @@ class BeanWorker
     {
         $this->logger->info("workers terminating");
 
-        $PIDs = $this->getWorkerProcesses();
+        $PIDs = $this->getWorkerPIDs();
 
         foreach ($PIDs as $pid) {
             swoole_process::kill($pid, SIGKILL);
@@ -220,7 +227,7 @@ class BeanWorker
         return $PIDs;
     }
 
-    private function getWorkerProcesses()
+    private function getWorkerPIDs()
     {
         $cmd = 'ps -ef |grep \'%s\' |awk \'$0 !~ /grep/ {print $2}\'';
         $PIDs = [];
