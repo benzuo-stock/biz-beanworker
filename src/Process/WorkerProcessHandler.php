@@ -84,7 +84,7 @@ class WorkerProcessHandler
 
         while (true) {
             if (!$this->masterPidManager->isRunning()) {
-                $this->logger->error("worker#{$this->process->pid} terminated, error: master was terminated");
+                $this->logger->error("worker#{$this->process->pid} terminated, error: master is not running");
                 $this->process->exit(0);
             }
 
