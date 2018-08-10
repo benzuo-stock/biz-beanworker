@@ -1,3 +1,4 @@
-app/data/*.pid
-app/data/*.job
+app/data
+!app/data/.gitkeep
 app/logs
+!app/logs/.gitkeep
