@@ -53,8 +53,9 @@ class BeanWorker
             return;
         }
 
-        if ($this->container['worker.daemonize']) {
+        if (true === $this->container['worker.daemonize']) {
             swoole_process::daemon();
+            $this->registerSignal();
         }
 
         $this->setProcessName('beanworker: master');
@@ -71,11 +72,9 @@ class BeanWorker
         }
 
         $workerPIDs = array_keys($this->workerProcesses);
-        $workerPIDs = implode(' ', $workerPIDs);
+        $workerPIDs = implode(',', $workerPIDs);
         echo "workers#{$workerPIDs} started...\n";
         $this->logger->info("workers#{$workerPIDs} started.");
-
-        $this->registerSignal();
 
         return $pid;
     }
@@ -102,7 +101,7 @@ class BeanWorker
         $workerPIDs = $this->terminateWorkerProcesses();
 
         if (!empty($workerPIDs)) {
-            $workerPIDs = implode(' ', $workerPIDs);
+            $workerPIDs = implode(',', $workerPIDs);
             echo "workers {$workerPIDs} stopped.\n";
             $this->logger->info("workers {$workerPIDs} stopped");
         } else {
@@ -121,14 +120,14 @@ class BeanWorker
     public function status()
     {
         if ($this->masterPidManager->isRunning()) {
-            echo "master is running.\n";
+            echo "master#{$this->masterPidManager->get()} is running.\n";
         } else {
             echo "master is not running.\n";
         }
 
         $workerPIDs = $this->getWorkerPIDs();
         if (!empty($workerPIDs)) {
-            $workerPIDs = implode(' ', $workerPIDs);
+            $workerPIDs = implode(',', $workerPIDs);
             echo "workers#{$workerPIDs} are running.\n";
         } else {
             echo "workers are not running.\n";

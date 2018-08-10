@@ -33,12 +33,13 @@ class BeanWorkerTest extends TestCase
 
         $this->assertEquals($masterPid, $beanWorker->masterPidManager->get());
 
-        swoole_process::kill($workerPIDs[0], SIGKILL);
+        // The phpunit process will never exit if master process had registered swoole_process::signal(SIGCHLD, Fn)
+        swoole_process::kill($workerPIDs[0]);
         $PIDs1 = $this->getMasterAndWorkerPIDs();
         $this->assertEquals(false, isset($PIDs1['workers'][$workerPIDs[0]]));
         $this->assertCount(2, $PIDs1['workers']);
 
-        swoole_process::kill($workerPIDs[1], SIGKILL);
+        swoole_process::kill($workerPIDs[1]);
         $PIDs2 = $this->getMasterAndWorkerPIDs();
         $this->assertEquals(false, isset($PIDs2['workers'][$workerPIDs[1]]));
         $this->assertCount(1, $PIDs2['workers']);
