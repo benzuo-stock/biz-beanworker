@@ -10,6 +10,7 @@ A beanstalkd and swoole based queue worker framework.
  * PHP >= 7.1
  * Swoole >= 4.0
  * Beanstalk >= 1.10
+ * Ubuntu 16.04 / OSX 10.13 tested
 
 ## Usage
 
@@ -46,7 +47,6 @@ parameters:
         host: "127.0.0.1"
         port: 11300
         worker:
-          daemonize: true
           tubes:
             logger: {worker_num: 3, class: Biz\Queue\Worker\LogWorker}
 

@@ -6,7 +6,6 @@ use BeanWorker\Worker\WorkerInterface;
 use Pimple\Container;
 use Beanstalk\Client;
 use Psr\Log\LoggerInterface;
-use \swoole_process;
 
 /**
  * The class to handle job after worker process created.
@@ -19,7 +18,7 @@ class WorkerProcessHandler
     private $pid;
 
     /**
-     * @var swoole_process
+     * @var \swoole_process
      */
     private $process;
 
@@ -29,9 +28,9 @@ class WorkerProcessHandler
     private $container;
 
     /**
-     * @var PidManager
+     * @var ProcessManager
      */
-    private $masterPidManager;
+    private $processManager;
 
     /**
      * @var LoggerInterface
@@ -53,13 +52,13 @@ class WorkerProcessHandler
      */
     private $beanstalk;
 
-    public function __construct(swoole_process $process, Container $container, $tubeName, $workerClass)
+    public function __construct($process, Container $container, $tubeName, $workerClass)
     {
         $this->pid = $process->pid;
         $this->process = $process;
         $this->container = $container;
         $this->logger = $container['logger'];
-        $this->masterPidManager = $container['master_pid_manager'];
+        $this->processManager = $container['process_manager'];
         $this->tubeName = $tubeName;
         $this->worker = $this->initWorker($workerClass);
         $this->beanstalk = $this->initBeanstalk();
@@ -83,7 +82,7 @@ class WorkerProcessHandler
         $this->logger->info("worker#{$this->process->pid} started, watching tube#{$this->tubeName}...");
 
         while (true) {
-            if (!$this->masterPidManager->isRunning()) {
+            if (!$this->processManager->isRunning()) {
                 $this->logger->error("worker#{$this->process->pid} terminated, error: master is not running");
                 $this->process->exit(0);
             }

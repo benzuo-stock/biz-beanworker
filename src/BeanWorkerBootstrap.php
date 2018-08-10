@@ -5,7 +5,7 @@ namespace BeanWorker;
 use Pimple\Container;
 use Monolog\Logger;
 use Monolog\Handler\StreamHandler;
-use BeanWorker\Process\PidManager;
+use BeanWorker\Process\ProcessManager;
 
 class BeanWorkerBootstrap
 {
@@ -27,12 +27,11 @@ class BeanWorkerBootstrap
 
         $container['biz'] = $this->biz;
         $container['options'] = $options;
-        $container['worker.daemonize'] = $workerOptions['daemonize'] ?? true;
         $container['worker.tubes'] = $workerOptions['tubes'];
         $container['worker.reserve_timeout'] = $workerOptions['reserve_timeout'] ?? 60;
 
-        $container['master_pid_manager'] = function () use ($container) {
-            return new PidManager(realpath($this->biz['data_directory']).'/beanworker.pid');
+        $container['process_manager'] = function () use ($container) {
+            return new ProcessManager(realpath($this->biz['data_directory']).'/beanworker.pid');
         };
         $container['logger'] = function () use ($container) {
             return new Logger('beanworker_worker', [new StreamHandler(realpath($container['biz']['log_directory']).'/beanworker_worker'.date('Ymd', time()).'.log')]);

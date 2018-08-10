@@ -8,7 +8,6 @@ $bizConfig = [
         'host' => "127.0.0.1",
         'port' => 11300,
         'worker' => [
-            'daemonize' => true,
             'reserve_timeout' => 5,
             'tubes' => [
                 'test' => [
