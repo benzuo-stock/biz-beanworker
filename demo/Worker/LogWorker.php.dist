@@ -11,10 +11,13 @@ class LogWorker extends AbstractWorker
         $this->getLogService()->info($data['module'], $data['action'], "Job#{$jobId} executed", $data['data']);
 
         // finish job
-        return ['code' => self::FINISH];
+        return $this->finish();
 
-        // retry job
-        // return ['code' => self::RETRY, 'pri' => 1024, 'delay' => 3];
+
+        // retry job, default $pri = 1024, $delay = 3
+        // return $this->retry(1024, 3);
+        // bury job, default $pri = 1024
+        // return $this->bury(1024);
     }
 
     /**

@@ -14,10 +14,66 @@ A beanstalkd and swoole based queue worker framework.
 
 ## Usage
 
+### Bootstrap
+
  1. put a file named `beanworker.php` to the project root dir, see `demo/beanworker.php.dist`
  2. put the `bootstrap_beanworker.php` to the right place of your project, see `demo/bootstrap_beanworker.php.dist`
  3. write your Worker to handle job, see `demo/Worker/LogWorker.php.dist`
- 4. run `bin/beanworker` from your project root dir
+ 4. config tubes and worker options, see `Config` chapter blow
+ 5. run `bin/beanworker start` from your project root dir
+
+### Worker
+
+```php
+<?php
+
+namespace Biz\Queue\Worker;
+
+use BeanWorker\Worker\AbstractWorker;
+
+class LogWorker extends AbstractWorker
+{
+    public function execute($jobId, array $data)
+    {
+        $this->getLogService()->info($data['module'], $data['action'], "Job#{$jobId} executed", $data['data']);
+
+        // finish job
+        return $this->finish();
+
+
+        // retry job, default $pri = 1024, $delay = 3
+        // return $this->retry(1024, 3);
+        // bury job, default $pri = 1024
+        // return $this->bury(1024);
+    }
+
+    /**
+     * @return \Biz\System\Service\LogService
+     */
+    protected function getLogService()
+    {
+        return $this->container['biz']->service('System:LogService');
+    }
+}
+
+```
+
+### Producer
+
+register BeanProducerServiceProvider
+
+```php
+// $biz is a instance of Pimple\Container
+$biz->register(new \BeanWorker\Provider\BeanProducerServiceProvider());
+```
+
+use BeanProducer
+
+```
+$beanProducer = $biz['queue.producer'];
+$beanProducer->connect();
+$beanProducer->putInTube('test', arrayData);
+```
 
 ## Config
 

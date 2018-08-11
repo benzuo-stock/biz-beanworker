@@ -54,10 +54,10 @@ class BeanWorkerTest extends TestCase
 
     public function testPut()
     {
+        $content = time();
+
         $beanProducer = $this->getBeanProducer();
         $beanProducer->connect();
-
-        $content = time();
         $beanProducer->putInTube('test', ['content' => $content]);
 
         sleep(1);
