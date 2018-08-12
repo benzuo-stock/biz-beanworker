@@ -32,11 +32,11 @@ class BeanWorkerTest extends TestCase
         $masterPid = $PIDs['master'];
         $workerPIDs = $PIDs['workers'];
 
-        $this->assertCount(3, $workerPIDs);
+        $this->assertCount(6, $workerPIDs);
         $this->assertEquals(true, ProcessManager::kill($masterPid, 0));
-        $this->assertEquals(true, ProcessManager::kill($workerPIDs[0], 0));
-        $this->assertEquals(true, ProcessManager::kill($workerPIDs[1], 0));
-        $this->assertEquals(true, ProcessManager::kill($workerPIDs[2], 0));
+        foreach ($workerPIDs as $workerPID) {
+            $this->assertEquals(true, ProcessManager::kill($workerPID, 0));
+        }
 
         $this->assertEquals($masterPid, $beanWorker->processManager->getPid());
 
@@ -44,27 +44,33 @@ class BeanWorkerTest extends TestCase
         ProcessManager::kill($workerPIDs[0]);
         $PIDs1 = $this->getMasterAndWorkerPIDs();
         $this->assertEquals(false, isset($PIDs1['workers'][$workerPIDs[0]]));
-        $this->assertCount(2, $PIDs1['workers']);
+        $this->assertCount(5, $PIDs1['workers']);
 
         ProcessManager::kill($workerPIDs[1]);
         $PIDs2 = $this->getMasterAndWorkerPIDs();
         $this->assertEquals(false, isset($PIDs2['workers'][$workerPIDs[1]]));
-        $this->assertCount(1, $PIDs2['workers']);
+        $this->assertCount(4, $PIDs2['workers']);
     }
 
     public function testPut()
     {
-        $content = time();
+        $content1 = md5(microtime(true));
+        $test1BeanProducer = $this->getTest1BeanProducer();
+        $test1BeanProducer->put(['content' => $content1]);
 
-        $beanProducer = $this->getBeanProducer();
-        $beanProducer->connect();
-        $beanProducer->putInTube('test', ['content' => $content]);
+        $content2 = md5(microtime(true));
+        $test2BeanProducer = $this->getTest2BeanProducer();
+        $test2BeanProducer->put(['content' => $content2]);
 
         sleep(1);
         $container = static::getContainer();
-        $testFile = $container['biz']['data_directory'].'/test.job';
-        $this->assertEquals(true, file_exists($testFile));
-        $this->assertEquals($content, file_get_contents($testFile));
+        $test1File = $container['biz']['data_directory'].'/test1.job';
+        $this->assertEquals(true, file_exists($test1File));
+        $this->assertEquals($content1, file_get_contents($test1File));
+
+        $test2File = $container['biz']['data_directory'].'/test2.job';
+        $this->assertEquals(true, file_exists($test2File));
+        $this->assertEquals($content2, file_get_contents($test2File));
     }
 
     private function getMasterAndWorkerPIDs()
@@ -91,10 +97,19 @@ class BeanWorkerTest extends TestCase
     /**
      * @return BeanProducer
      */
-    private function getBeanProducer()
+    private function getTest1BeanProducer()
     {
         $container = static::getContainer();
-        return $container['biz']['queue.producer'];
+        return $container['biz']['queue.producer.test1'];
+    }
+
+    /**
+     * @return BeanProducer
+     */
+    private function getTest2BeanProducer()
+    {
+        $container = static::getContainer();
+        return $container['biz']['queue.producer.test2'];
     }
 
     public static function getContainer()

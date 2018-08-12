@@ -9,7 +9,9 @@ class BeanProducer
 {
     protected $client;
 
-    public function __construct(array $options, LoggerInterface $logger = null)
+    protected $tube;
+
+    public function __construct(array $options, $tube = 'default', LoggerInterface $logger = null)
     {
         $options = array_merge([
             'host' => '127.0.0.1',
@@ -20,56 +22,50 @@ class BeanProducer
         ], $options);
 
         $this->client = new Client($options);
-    }
-
-    public function connect()
-    {
-        return $this->client->connect();
-    }
-
-    public function disconnect()
-    {
-        return $this->client->disconnect();
-    }
-
-    public function stats()
-    {
-        return $this->client->stats();
-    }
-
-    public function listTubes()
-    {
-        return $this->client->listTubes();
-    }
-
-    public function statsTube($tube)
-    {
-        return $this->client->statsTube($tube);
-    }
-
-    public function useTube($tube)
-    {
-        return $this->client->useTube($tube);
+        $this->tube = $tube;
     }
 
     public function put(array $data, $ttr = 60, $delay = 0, $pri = 1024)
     {
-        return $this->client->put($pri, $delay, $ttr, json_encode($data));
-    }
-
-    public function putInTube($tube, array $data, $ttr = 60, $delay = 0, $pri = 1024)
-    {
-        $this->client->useTube($tube);
-        return $this->client->put($pri, $delay, $ttr, json_encode($data));
+        return $this->proxy('put', [$pri, $delay, $ttr, json_encode($data)]);
     }
 
     public function statsJob($jobId)
     {
-        return $this->client->statsJob($jobId);
+        return $this->proxy('statsJob', [$jobId]);
     }
 
     public function kickJob($jobId)
     {
-        return $this->client->kickJob($jobId);
+        return $this->proxy('kickJob', [$jobId]);
+    }
+
+    public function stats()
+    {
+        return $this->proxy('stats');
+    }
+
+    public function listTubes()
+    {
+        return $this->proxy('listTubes');
+    }
+
+    public function statsTube($tube = null)
+    {
+        if (empty($tube)) {
+            $tube = $this->tube;
+        }
+
+        return $this->proxy('statsTube', [$tube]);
+    }
+
+    protected function proxy($cmd, array $args = [])
+    {
+        if (!$this->client->connected) {
+            $this->client->connect();
+            $this->client->useTube($this->tube);
+        }
+
+        return \call_user_func_array([&$this->client, $cmd], $args);
     }
 }

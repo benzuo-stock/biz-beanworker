@@ -5,14 +5,18 @@ $bizConfig = [
     'data_directory' => __DIR__.'/data',
     'log_directory' => __DIR__.'/logs',
     'queue.options' => [
-        'host' => "127.0.0.1",
+        'host' => '127.0.0.1',
         'port' => 11300,
         'worker' => [
             'reserve_timeout' => 5,
             'tubes' => [
-                'test' => [
+                'test1' => [
                     'worker_num' => 3,
-                    'class' => 'TestProject\Biz\Worker\TestWorker',
+                    'class' => 'TestProject\Biz\Worker\Test1Worker',
+                ],
+                'test2' => [
+                    'worker_num' => 3,
+                    'class' => 'TestProject\Biz\Worker\Test2Worker',
                 ]
             ]
         ]

@@ -70,9 +70,9 @@ $biz->register(new \BeanWorker\Provider\BeanProducerServiceProvider());
 use BeanProducer
 
 ```
-$beanProducer = $biz['queue.producer'];
-$beanProducer->connect();
-$beanProducer->putInTube('test', arrayData);
+// 'queue.producer.' + $tubeName
+$beanProducer = $biz['queue.producer.test1'];
+$beanProducer->put(arrayData);
 ```
 
 ## Config
@@ -104,6 +104,7 @@ parameters:
         port: 11300
         worker:
           tubes:
+            test1: {worker_num: 3, class: Biz\Queue\Worker\Test1Worker}
             logger: {worker_num: 3, class: Biz\Queue\Worker\LogWorker}
 
 services:
