@@ -53,7 +53,7 @@ class BeanWorker
         }
 
         $masterProcess = ProcessManager::createProcess(function ($process) {
-            ProcessManager::setProcessName("beanworker: master");
+            ProcessManager::setProcessName("{$this->container['worker.project_id']} beanworker: master");
             $masterProcessHandler = new MasterProcessHandler($process, $this->container);
             $masterProcessHandler->start();
         });

@@ -27,6 +27,7 @@ class BeanWorkerBootstrap
 
         $container['biz'] = $this->biz;
         $container['options'] = $options;
+        $container['worker.project_id'] = $workerOptions['project_id'];
         $container['worker.tubes'] = $workerOptions['tubes'];
         $container['worker.reserve_timeout'] = $workerOptions['reserve_timeout'] ?? 60;
 
