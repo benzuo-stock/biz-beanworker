@@ -35,7 +35,7 @@ class BeanWorkerBootstrap
             return new ProcessManager(realpath($this->biz['data_directory']).'/beanworker.pid');
         };
         $container['logger'] = function () use ($container) {
-            return new Logger('beanworker_worker', [new StreamHandler(realpath($container['biz']['log_directory']).'/beanworker_worker'.date('Ymd', time()).'.log')]);
+            return new Logger('beanworker_worker', [new StreamHandler(realpath($container['biz']['log_directory']).'/beanworker_worker'.date('Ymd').'.log')]);
         };
 
         return $container;

@@ -15,6 +15,11 @@ class BeanWorker
     private $container;
 
     /**
+     * @var string
+     */
+    private $projectId;
+
+    /**
      * @var LoggerInterface
      */
     private $logger;
@@ -32,6 +37,7 @@ class BeanWorker
     public function __construct(Container $container)
     {
         $this->container = $container;
+        $this->projectId = $container['worker.project_id'];
         $this->logger = $container['logger'];
         $this->processManager = $container['process_manager'];
     }
@@ -53,14 +59,14 @@ class BeanWorker
         }
 
         $masterProcess = ProcessManager::createProcess(function ($process) {
-            ProcessManager::setProcessName("{$this->container['worker.project_id']} beanworker: master");
+            ProcessManager::setProcessName("{$this->projectId} beanworker: master");
             $masterProcessHandler = new MasterProcessHandler($process, $this->container);
             $masterProcessHandler->start();
         });
 
         $masterPid = $masterProcess->start();
 
-        $workerPIDs = MasterProcessHandler::getWorkerPIDs($masterPid);
+        $workerPIDs = MasterProcessHandler::getWorkerPIDs($this->projectId, $masterPid);
         $workerCount = \count($workerPIDs);
         $workerPIDs = implode(',', $workerPIDs);
         echo "beanworker started, master#{$masterProcess->pid}, workers({$workerCount})#{$workerPIDs} \n";
@@ -84,7 +90,7 @@ class BeanWorker
             $this->logger->warning("WARNING: master is not running");
         }
 
-        $workerPIDs = MasterProcessHandler::getWorkerPIDs($masterPid);
+        $workerPIDs = MasterProcessHandler::getWorkerPIDs($this->projectId, $masterPid);
         if (!empty($workerPIDs)) {
 
             $this->logger->info("workers stopping");
@@ -117,7 +123,7 @@ class BeanWorker
             echo "master is not running.\n";
         }
 
-        $workerPIDs = MasterProcessHandler::getWorkerPIDs($masterPid);
+        $workerPIDs = MasterProcessHandler::getWorkerPIDs($this->projectId, $masterPid);
         if (!empty($workerPIDs)) {
             $workerCount = \count($workerPIDs);
             $workerPIDs = implode(',', $workerPIDs);

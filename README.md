@@ -103,6 +103,8 @@ parameters:
         host: "127.0.0.1"
         port: 11300
         worker:
+          project_id: test_project
+          reserve_timeout: 60
           tubes:
             test1: {worker_num: 3, class: Biz\Queue\Worker\Test1Worker}
             logger: {worker_num: 3, class: Biz\Queue\Worker\LogWorker}

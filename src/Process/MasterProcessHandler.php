@@ -11,6 +11,11 @@ use Psr\Log\LoggerInterface;
 class MasterProcessHandler
 {
     /**
+     * @var string
+     */
+    private $projectId;
+
+    /**
      * @var int
      */
     private $pid;
@@ -45,6 +50,7 @@ class MasterProcessHandler
         $this->pid = $process->pid;
         $this->process = $process;
         $this->container = $container;
+        $this->projectId = $container['worker.project_id'];
         $this->logger = $container['logger'];
         $this->processManager = $container['process_manager'];
     }
@@ -84,7 +90,7 @@ class MasterProcessHandler
         $workerClass = $this->container['worker.tubes'][$tube]['class'];
 
         $workerProcess = ProcessManager::createProcess(function ($process) use ($tube, $workerClass) {
-            ProcessManager::setProcessName("{$this->container['worker.project_id']} beanworker: worker tube#{$tube}");
+            ProcessManager::setProcessName("{$this->projectId} beanworker: worker tube#{$tube}");
             $workerProcessHandler = new WorkerProcessHandler($process, $this->container, $tube, $workerClass);
             $workerProcessHandler->start();
         });
@@ -141,12 +147,12 @@ class MasterProcessHandler
         ProcessManager::signal(SIGKILL, $onTerminated);
     }
 
-    public static function getWorkerPIDs($masterPid = -1)
+    public static function getWorkerPIDs($projectId, $masterPid = -1)
     {
         $cmd = 'ps -ef |grep \'%s\' |awk \'$0 !~ /grep/ {print $2}\'';
 
         $PIDs = [];
-        exec(sprintf($cmd, 'beanworker: worker'), $PIDs);
+        exec(sprintf($cmd, "{$projectId} beanworker: worker"), $PIDs);
 
         // if process rename failed, default name is `php bin/beanworker start`
         if (empty($PIDs)) {
