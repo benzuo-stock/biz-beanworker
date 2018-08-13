@@ -152,9 +152,9 @@ class MasterProcessHandler
         if (empty($PIDs)) {
             $PIDs = [];
             exec(sprintf($cmd, 'bin/beanworker start'), $PIDs);
-            foreach ($PIDs as &$pid) {
+            foreach ($PIDs as $key => $pid) {
                 if ($pid <= $masterPid) {
-                    unset($pid);
+                    unset($PIDs[$key]);
                 }
             }
         }
