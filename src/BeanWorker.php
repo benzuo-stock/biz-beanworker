@@ -58,12 +58,12 @@ class BeanWorker
             $masterProcessHandler->start();
         });
 
-        $masterProcess->start();
+        $masterPid = $masterProcess->start();
 
-        $workerPIDs = MasterProcessHandler::getWorkerPIDs();
-        $workerCount = count($workerPIDs);
+        $workerPIDs = MasterProcessHandler::getWorkerPIDs($masterPid);
+        $workerCount = \count($workerPIDs);
         $workerPIDs = implode(',', $workerPIDs);
-        echo "beanworker started, master#{$masterProcess->pid}, {$workerCount} workers#{$workerPIDs} \n";
+        echo "beanworker started, master#{$masterProcess->pid}, workers({$workerCount})#{$workerPIDs} \n";
     }
 
     public function stop()
@@ -71,22 +71,20 @@ class BeanWorker
         echo "beanworker stopping...\n";
         $this->logger->info("beanworker stopping...");
 
+        $masterPid = $this->processManager->getPid();
         if ($this->processManager->isRunning()) {
-            $pid = $this->processManager->getPid();
-
-            ProcessManager::kill($pid, SIGKILL);
+            ProcessManager::kill($masterPid, SIGKILL);
 
             $this->processManager->clearPid();
 
-            echo "master#{$pid} stopped.\n";
-            $this->logger->info("master#{$pid} stopped");
+            echo "master#{$masterPid} stopped.\n";
+            $this->logger->info("master#{$masterPid} stopped");
         } else {
             echo "WARNING: master is not running.\n";
             $this->logger->warning("WARNING: master is not running");
         }
 
-        $workerPIDs = MasterProcessHandler::getWorkerPIDs();
-
+        $workerPIDs = MasterProcessHandler::getWorkerPIDs($masterPid);
         if (!empty($workerPIDs)) {
 
             $this->logger->info("workers stopping");
@@ -96,6 +94,7 @@ class BeanWorker
                 echo "worker#{$workerPid} stopped.\n";
                 $this->logger->info("worker#{$workerPid} stopped");
             }
+
         } else {
             echo "WARNING: workers are not running.\n";
             $this->logger->warning("WARNING: workers are not running");
@@ -111,16 +110,18 @@ class BeanWorker
 
     public function status()
     {
+        $masterPid = $this->processManager->getPid();
         if ($this->processManager->isRunning()) {
-            echo "master#{$this->processManager->getPid()} is running.\n";
+            echo "master#{$masterPid} is running.\n";
         } else {
             echo "master is not running.\n";
         }
 
-        $workerPIDs = MasterProcessHandler::getWorkerPIDs();
+        $workerPIDs = MasterProcessHandler::getWorkerPIDs($masterPid);
         if (!empty($workerPIDs)) {
+            $workerCount = \count($workerPIDs);
             $workerPIDs = implode(',', $workerPIDs);
-            echo "workers#{$workerPIDs} are running.\n";
+            echo "workers({$workerCount})#{$workerPIDs} are running.\n";
         } else {
             echo "workers are not running.\n";
         }

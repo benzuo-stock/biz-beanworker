@@ -17,7 +17,7 @@ class BeanProducerServiceProvider implements ServiceProviderInterface
         $tubes = array_keys($workerOptions['tubes']);
 
         $biz['queue.logger'] = function ($biz) {
-            return new Logger('beanworker_producer', [new StreamHandler(realpath($biz['log_directory']).'/beanworker_producer'.date('Ymd', time()).'.log')]);
+            return new Logger('beanworker_producer', [new StreamHandler(realpath($biz['log_directory']).'/beanworker_producer'.date('Ymd').'.log')]);
         };
 
         foreach ($tubes as $tube) {

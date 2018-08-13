@@ -65,7 +65,7 @@ class MasterProcessHandler
 
         if (false !== strpos(php_uname(), 'Darwin')) {
             while (true) {
-                //make master daemonize on OSX
+                sleep(3600);
             }
         }
     }
@@ -141,17 +141,22 @@ class MasterProcessHandler
         ProcessManager::signal(SIGKILL, $onTerminated);
     }
 
-    public static function getWorkerPIDs()
+    public static function getWorkerPIDs($masterPid = -1)
     {
         $cmd = 'ps -ef |grep \'%s\' |awk \'$0 !~ /grep/ {print $2}\'';
 
+        $PIDs = [];
         exec(sprintf($cmd, 'beanworker: worker'), $PIDs);
 
         // if process rename failed, default name is `php bin/beanworker start`
         if (empty($PIDs)) {
+            $PIDs = [];
             exec(sprintf($cmd, 'bin/beanworker start'), $PIDs);
-            // $PIDs = array_values(array_diff($PIDs, [$this->processManager->getPid()]));
-            array_shift($PIDs);
+            foreach ($PIDs as &$pid) {
+                if ($pid <= $masterPid) {
+                    unset($pid);
+                }
+            }
         }
 
         if (empty($PIDs)) {

@@ -2,7 +2,6 @@
 
 namespace BeanWorker\Process;
 
-use phpDocumentor\Reflection\Types\Boolean;
 use \swoole_process;
 
 class ProcessManager
