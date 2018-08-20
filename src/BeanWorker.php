@@ -6,6 +6,7 @@ use Pimple\Container;
 use Psr\Log\LoggerInterface;
 use BeanWorker\Process\ProcessManager;
 use BeanWorker\Process\MasterProcessHandler;
+use BeanWorker\Process\MetricProcessHandler;
 
 class BeanWorker
 {
@@ -30,6 +31,11 @@ class BeanWorker
     public $processManager;
 
     /**
+     * @var ProcessManager
+     */
+    public $metricProcessManager;
+
+    /**
      * @var array
      */
     public $workerProcesses = [];
@@ -38,8 +44,9 @@ class BeanWorker
     {
         $this->container = $container;
         $this->projectId = $container['worker.project_id'];
-        $this->logger = $container['logger'];
-        $this->processManager = $container['process_manager'];
+        $this->logger = $container['worker.logger'];
+        $this->processManager = $container['worker.process_manager'];
+        $this->metricProcessManager = $container['metric.process_manager'];
     }
 
     public function cmd($func)
@@ -50,7 +57,7 @@ class BeanWorker
     public function start()
     {
         echo "beanworker starting...\n";
-        $this->logger->info("beanworker starting...");
+        $this->logger->info('beanworker starting...');
 
         if ($this->processManager->isRunning()) {
             echo "ERROR: beanworker#{$this->processManager->getPid()} is already running.\n";
@@ -70,12 +77,21 @@ class BeanWorker
         $workerCount = \count($workerPIDs);
         $workerPIDs = implode(',', $workerPIDs);
         echo "beanworker started, master#{$masterProcess->pid}, workers({$workerCount})#{$workerPIDs} \n";
+
+        if ($this->container['metric.enabled']) {
+            $metricProcess = ProcessManager::createProcess(function ($process) {
+                ProcessManager::setProcessName("{$this->projectId} metric: master");
+                $metricProcessHandler = new MetricProcessHandler($process, $this->container);
+                $metricProcessHandler->start();
+            });
+            $metricProcess->start();
+        }
     }
 
     public function stop()
     {
         echo "beanworker stopping...\n";
-        $this->logger->info("beanworker stopping...");
+        $this->logger->info('beanworker stopping...');
 
         $masterPid = $this->processManager->getPid();
         if ($this->processManager->isRunning()) {
@@ -105,6 +121,21 @@ class BeanWorker
             echo "WARNING: workers are not running.\n";
             $this->logger->warning("WARNING: workers are not running");
         }
+
+        if ($this->container['metric.enabled']) {
+            $metricPid = $this->metricProcessManager->getPid();
+            if ($this->metricProcessManager->isRunning()) {
+                ProcessManager::kill($metricPid, SIGKILL);
+
+                $this->metricProcessManager->clearPid();
+
+                echo "metric exporter#{$metricPid} stopped.\n";
+                $this->logger->info("metric exporter#{$metricPid} stopped");
+            } else {
+                echo "WARNING: metric exporter is not running.\n";
+                $this->logger->warning('WARNING: metric exporter is not running');
+            }
+        }
     }
 
     public function restart()
@@ -130,6 +161,13 @@ class BeanWorker
             echo "workers({$workerCount})#{$workerPIDs} are running.\n";
         } else {
             echo "workers are not running.\n";
+        }
+
+        $metricPid = $this->metricProcessManager->getPid();
+        if ($this->metricProcessManager->isRunning()) {
+            echo "metric exporter#{$metricPid} is running.\n";
+        } else {
+            echo "metric exporter is not running.\n";
         }
     }
 }

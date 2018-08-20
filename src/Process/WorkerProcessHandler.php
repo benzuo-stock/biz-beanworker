@@ -51,8 +51,8 @@ class WorkerProcessHandler
         $this->pid = $process->pid;
         $this->process = $process;
         $this->container = $container;
-        $this->logger = $container['logger'];
-        $this->processManager = $container['process_manager'];
+        $this->logger = $container['worker.logger'];
+        $this->processManager = $container['worker.process_manager'];
         $this->tubeName = $tubeName;
         $this->worker = $this->initWorker($workerClass);
         $this->beanstalk = $this->initBeanstalk();

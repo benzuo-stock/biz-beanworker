@@ -7,6 +7,10 @@ $bizConfig = [
     'queue.options' => [
         'host' => '127.0.0.1',
         'port' => 11300,
+        'metric' => [
+            'enabled' => 1,
+            'port' => 9527,
+        ],
         'worker' => [
             'project_id' => 'test_project',
             'reserve_timeout' => 5,

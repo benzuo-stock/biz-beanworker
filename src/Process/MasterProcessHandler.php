@@ -42,8 +42,8 @@ class MasterProcessHandler
         $this->process = $process;
         $this->container = $container;
         $this->projectId = $container['worker.project_id'];
-        $this->logger = $container['logger'];
-        $this->processManager = $container['process_manager'];
+        $this->logger = $container['worker.logger'];
+        $this->processManager = $container['worker.process_manager'];
     }
 
     public function start()

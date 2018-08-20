@@ -23,20 +23,29 @@ class BeanWorkerBootstrap
         $container = new Container();
         $options = $this->biz['queue.options'];
         $workerOptions = $options['worker'];
-        unset($options['worker']);
+        $metricOptions = $options['metric'] ?? [];
+        unset($options['worker'], $options['metric']);
 
         $container['biz'] = $this->biz;
         $container['options'] = $options;
         $container['worker.project_id'] = $workerOptions['project_id'];
         $container['worker.tubes'] = $workerOptions['tubes'];
         $container['worker.reserve_timeout'] = $workerOptions['reserve_timeout'] ?? 60;
-
-        $container['process_manager'] = function () use ($container) {
+        $container['worker.process_manager'] = function () {
             return new ProcessManager(realpath($this->biz['data_directory']).'/beanworker.pid');
         };
-        $container['logger'] = function () use ($container) {
+        $container['worker.logger'] = $container->factory(function () use ($container) {
             return new Logger('beanworker_worker', [new StreamHandler(realpath($container['biz']['log_directory']).'/beanworker_worker'.date('Ymd').'.log')]);
+        });
+
+        $container['metric.enabled'] = empty($metricOptions['enabled']) ? 0 : 1;
+        $container['metric.port'] = $metricOptions['port'] ?? '';
+        $container['metric.process_manager'] = function () {
+            return new ProcessManager(realpath($this->biz['data_directory']).'/beanworker_metric.pid');
         };
+        $container['metric.logger'] = $container->factory(function () use ($container) {
+            return new Logger('beanworker_metric', [new StreamHandler(realpath($container['biz']['log_directory']).'/beanworker_metric'.date('Ymd').'.log')]);
+        });
 
         return $container;
     }
