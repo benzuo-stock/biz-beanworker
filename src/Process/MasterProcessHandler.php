@@ -82,7 +82,7 @@ class MasterProcessHandler
         $workerClass = $this->container['worker.tubes'][$tube]['class'];
 
         $workerProcess = ProcessManager::createProcess(function ($process) use ($tube, $workerClass) {
-            ProcessManager::setProcessName("{$this->projectId} beanworker: worker tube#{$tube}");
+            ProcessManager::setProcessName("{$this->projectId} beanworker: worker {$tube}");
             $workerProcessHandler = new WorkerProcessHandler($process, $this->container, $tube, $workerClass);
             $workerProcessHandler->start();
         });

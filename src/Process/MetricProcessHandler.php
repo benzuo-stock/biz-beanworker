@@ -38,11 +38,11 @@ class MetricProcessHandler
 
     public function start()
     {
-        echo "metric exporter starting...\n";
-        $this->logger->info('metric exporter starting...');
+        echo "metric starting...\n";
+        $this->logger->info('metric starting...');
 
         if ($this->processManager->isRunning()) {
-            echo "ERROR: metric exporter#{$this->processManager->getPid()} is already running.\n";
+            echo "ERROR: metric#{$this->processManager->getPid()} is already running.\n";
 
             return;
         }
@@ -56,8 +56,8 @@ class MetricProcessHandler
         $pid = posix_getpid();
         $this->processManager->savePid($pid);
 
-        echo "metric exporter##{$pid} started...\n";
-        $this->logger->info("metric exporter#{$pid} started.");
+        echo "metric##{$pid} started...\n";
+        $this->logger->info("metric#{$pid} started.");
 
         $server->on('request', function ($request, $response) {
             $this->logger->info(json_encode($request->header).json_encode($request->server));

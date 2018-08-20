@@ -80,7 +80,7 @@ class BeanWorker
 
         if ($this->container['metric.enabled']) {
             $metricProcess = ProcessManager::createProcess(function ($process) {
-                ProcessManager::setProcessName("{$this->projectId} metric: master");
+                ProcessManager::setProcessName("{$this->projectId} beanworker: metric");
                 $metricProcessHandler = new MetricProcessHandler($process, $this->container);
                 $metricProcessHandler->start();
             });
@@ -129,11 +129,11 @@ class BeanWorker
 
                 $this->metricProcessManager->clearPid();
 
-                echo "metric exporter#{$metricPid} stopped.\n";
-                $this->logger->info("metric exporter#{$metricPid} stopped");
+                echo "metric#{$metricPid} stopped.\n";
+                $this->logger->info("metric#{$metricPid} stopped");
             } else {
-                echo "WARNING: metric exporter is not running.\n";
-                $this->logger->warning('WARNING: metric exporter is not running');
+                echo "WARNING: metric is not running.\n";
+                $this->logger->warning('WARNING: metric is not running');
             }
         }
     }
@@ -165,9 +165,9 @@ class BeanWorker
 
         $metricPid = $this->metricProcessManager->getPid();
         if ($this->metricProcessManager->isRunning()) {
-            echo "metric exporter#{$metricPid} is running.\n";
+            echo "metric#{$metricPid} is running.\n";
         } else {
-            echo "metric exporter is not running.\n";
+            echo "metric is not running.\n";
         }
     }
 }
