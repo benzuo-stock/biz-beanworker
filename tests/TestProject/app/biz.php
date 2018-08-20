@@ -2,7 +2,6 @@
 
 // mock biz.yml config
 $bizConfig = [
-    'env' => 'test',
     'data_directory' => __DIR__.'/data',
     'log_directory' => __DIR__.'/logs',
     'queue.options' => [

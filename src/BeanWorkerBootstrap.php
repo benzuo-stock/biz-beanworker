@@ -49,7 +49,7 @@ class BeanWorkerBootstrap
         });
 
         //force disable metric exporter in OSX, as OSX cannot modify process name
-        if ($container['env'] === 'test' || false !== strpos(php_uname(), 'Darwin')) {
+        if (false !== strpos(php_uname(), 'Darwin')) {
             $container['metric.enabled'] = 0;
         }
 
