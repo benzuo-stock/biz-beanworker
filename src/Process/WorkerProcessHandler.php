@@ -12,14 +12,8 @@ use Psr\Log\LoggerInterface;
  */
 class WorkerProcessHandler
 {
-    /**
-     * @var int
-     */
     private $pid;
 
-    /**
-     * @var \swoole_process
-     */
     private $process;
 
     /**

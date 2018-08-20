@@ -10,19 +10,10 @@ use Psr\Log\LoggerInterface;
  */
 class MasterProcessHandler
 {
-    /**
-     * @var string
-     */
     private $projectId;
 
-    /**
-     * @var int
-     */
     private $pid;
 
-    /**
-     * @var \swoole_process
-     */
     private $process;
 
     /**
@@ -69,6 +60,7 @@ class MasterProcessHandler
 
         $this->registerSignal();
 
+        //fix OSX daemonize issue
         if (false !== strpos(php_uname(), 'Darwin')) {
             while (true) {
                 sleep(3600);
@@ -132,7 +124,7 @@ class MasterProcessHandler
         $onTerminated = function ($signo) {
             $this->logger->info("master terminated({$signo}), workers terminating");
 
-            $PIDs = self::getWorkerPIDs();
+            $PIDs = self::getWorkerPIDs($this->projectId);
 
             foreach ($PIDs as $pid) {
                 ProcessManager::kill($pid, SIGKILL);
