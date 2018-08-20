@@ -27,6 +27,7 @@ class BeanWorkerBootstrap
         unset($options['worker'], $options['metric']);
 
         $container['biz'] = $this->biz;
+        $container['env'] = $this->biz['env'] ?? 'prod';
         $container['options'] = $options;
         $container['worker.project_id'] = $workerOptions['project_id'];
         $container['worker.tubes'] = $workerOptions['tubes'];
@@ -46,6 +47,11 @@ class BeanWorkerBootstrap
         $container['metric.logger'] = $container->factory(function () use ($container) {
             return new Logger('beanworker_metric', [new StreamHandler(realpath($container['biz']['log_directory']).'/beanworker_metric'.date('Ymd').'.log')]);
         });
+
+        //force disable metric exporter in OSX, as OSX cannot modify process name
+        if ($container['env'] === 'test' || false !== strpos(php_uname(), 'Darwin')) {
+            $container['metric.enabled'] = 0;
+        }
 
         return $container;
     }
