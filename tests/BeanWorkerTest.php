@@ -76,21 +76,23 @@ class BeanWorkerTest extends TestCase
     private function getMasterAndWorkerPIDs()
     {
         $cmd = 'ps -ef |grep \'%s\' |awk \'$0 !~ /grep/ {print $2}\'';
-        $PIDs = [];
-        exec(sprintf($cmd, 'beanworker:'), $PIDs);
+        exec(sprintf($cmd, 'beanworker: master'), $masterPids);
+        exec(sprintf($cmd, 'beanworker: worker'), $workerPids);
+        $masterPid = empty($masterPids) ? 0 : array_shift($masterPids);
 
-        if (empty($PIDs)) {
+        if (!$masterPid) {
             exec(sprintf($cmd, 'phpunit'), $PIDs);
-
             if (false !== strpos(php_uname(), 'Darwin')) {
                 // fix OSX bug, there are 5 processes when run phpunit in OSX
                 array_shift($PIDs);
             }
+            $masterPid = array_shift($PIDs);
+            $workerPids = $PIDs;
         }
 
         return [
-            'master' => array_shift($PIDs),
-            'workers' => $PIDs,
+            'master' => $masterPid,
+            'workers' => $workerPids,
         ];
     }
 
