@@ -10,7 +10,7 @@ A beanstalkd and swoole based queue worker framework.
  * PHP >= 7.1
  * Swoole >= 4.0
  * Beanstalk >= 1.10
- * Ubuntu 16.04 / OSX 10.13 tested
+ * Ubuntu 16.04 / OSX 10.13 tested (prometheus exporter is not support in OSX)
 
 ## Usage
 
@@ -75,6 +75,10 @@ $beanProducer = $biz['queue.producer.test1'];
 $beanProducer->put(arrayData);
 ```
 
+### Prometheus Exporter
+
+It's auto started in linux(ubuntu 16.04 tested), and listening on 0.0.0.0:9527 by default.
+
 ## Config
 
 biz.yml in Symfony-base project
@@ -102,6 +106,9 @@ parameters:
     biz_queue_options:
         host: "127.0.0.1"
         port: 11300
+        metric:
+          enabled: 1
+          port: 9527
         worker:
           project_id: test_project
           reserve_timeout: 60
