@@ -126,8 +126,9 @@ class BeanWorker
             $metricPid = $this->metricProcessManager->getPid();
             if ($this->metricProcessManager->isRunning()) {
                 ProcessManager::kill($metricPid, SIGKILL);
-
                 $this->metricProcessManager->clearPid();
+
+                exec('kill -9 $(ps -ef|grep \'test_project beanworker: metric\'|awk \'$0 !~ /grep/ {print $2}\')');
 
                 echo "metric#{$metricPid} stopped.\n";
                 $this->logger->info("metric#{$metricPid} stopped");

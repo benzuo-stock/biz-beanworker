@@ -6,7 +6,7 @@ use \swoole_process;
 
 class ProcessManager
 {
-    private $pidFile;
+    public $pidFile;
 
     public function __construct($pidFile)
     {

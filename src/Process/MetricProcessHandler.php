@@ -51,6 +51,7 @@ class MetricProcessHandler
         $server->set([
             'reactor_num' => 1,
             'worker_num' => 1,
+            'log_file' => \dirname($this->processManager->pidFile).'/metric_server.log',
         ]);
 
         $pid = posix_getpid();
@@ -86,9 +87,22 @@ class MetricProcessHandler
 
     protected function createMetricsResponse()
     {
-        $cmd = 'ps -eo pid,stat,c,rss,args |grep beanworker|awk \'$0 !~ /grep/ {print $0}\'';
+        $cmd = 'ps -eo pid,stat,rss,args |grep beanworker|awk \'$0 !~ /grep/ {print $0}\'';
+        exec($cmd, $ps);
 
-        exec($cmd, $res);
+        $res = [];
+        foreach ($ps as $rowString) {
+            $arr = array_values(array_filter(explode(' ', $rowString)));
+            $row = [
+                'pid' => $arr[0],
+                'stat' => $arr[1],
+                'rss' => $arr[2],
+                'project' => $arr[3],
+                'process' => $arr[5],
+                'tube' => $arr[6] ?? '',
+            ];
+            $res[] = $row;
+        }
 
         return json_encode($res);
     }
