@@ -40,7 +40,7 @@ class BeanWorkerBootstrap
         });
 
         $container['metric.enabled'] = empty($metricOptions['enabled']) ? 0 : 1;
-        $container['metric.port'] = $metricOptions['port'] ?? '';
+        $container['metric.port'] = $metricOptions['port'] ?? 9527;
         $container['metric.process_manager'] = function () {
             return new ProcessManager(realpath($this->biz['data_directory']).'/beanworker_metric.pid');
         };
