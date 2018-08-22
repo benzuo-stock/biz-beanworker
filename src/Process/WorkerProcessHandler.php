@@ -103,17 +103,22 @@ class WorkerProcessHandler
         return $job;
     }
 
-    private function executeJob($jobId, $data)
+    private function executeJob($jobId, $jobBody)
     {
+        $startTime = $this->getMicroTime();
+
+        $data = json_decode($jobBody, true);
         try {
-            $result = $this->worker->execute($jobId, json_decode($data, true));
+            $result = $this->worker->execute($jobId, $data);
         } catch (\Exception $e) {
-            $this->logger->error("worker#{$this->process->pid} tube#{$this->tubeName} execute job#{$jobId} failed, error: {$e->getMessage()}", $data);
+            $message = "worker#{$this->process->pid} tube#{$this->tubeName} execute job#{$jobId} failed, error: {$e->getMessage()}";
+            $this->logger->error($message, $data);
+            $this->worker->onError($jobId, $data, $message);
 
             return;
         }
 
-        $code = $result['code'] ?? 0;
+        $code = $result['code'] ?? WorkerInterface::FINISH;
         $pri = $result['pri'] ?? 1024;
         $delay = $result['delay'] ?? 3;
         switch ($code) {
@@ -123,6 +128,9 @@ class WorkerProcessHandler
                 } else {
                     $this->logger->warning("worker#{$this->process->pid} tube#{$this->tubeName} execute job#{$jobId} finished, but delete job failed");
                 }
+
+                $this->worker->onFinish($jobId, $data, $startTime - $this->getMicroTime());
+
                 break;
             case WorkerInterface::RETRY:
                 if ($this->beanstalk->release($jobId, $pri, $delay)) {
@@ -130,6 +138,9 @@ class WorkerProcessHandler
                 } else {
                     $this->logger->warning("worker#{$this->process->pid} tube#{$this->tubeName} execute job#{$jobId} once, retry failed");
                 }
+
+                $this->worker->onRetry($jobId, $data, $startTime - $this->getMicroTime());
+
                 break;
             case WorkerInterface::BURY:
                 if ($this->beanstalk->bury($jobId, $pri)) {
@@ -137,9 +148,15 @@ class WorkerProcessHandler
                 } else {
                     $this->logger->warning("worker#{$this->process->pid} tube#{$this->tubeName} execute job#{$jobId} once, bury failed");
                 }
+
+                $this->worker->onBury($jobId, $data, $startTime - $this->getMicroTime());
+
                 break;
             default:
-                $this->logger->warning("worker#{$this->process->pid} tube#{$this->tubeName} execute job#{$jobId} result is invalid", $result);
+                $this->logger->error("worker#{$this->process->pid} tube#{$this->tubeName} execute job#{$jobId} result is invalid", $result);
+
+                $this->worker->onError($jobId, $data, sprintf('Invalid result#%s', $result));
+
                 break;
         }
     }
@@ -170,5 +187,10 @@ class WorkerProcessHandler
     private function initWorker($workerClass)
     {
         return new $workerClass($this->container);
+    }
+
+    private function getMicroTime()
+    {
+        return round(microtime(true) * 1000);
     }
 }
