@@ -27,12 +27,12 @@ abstract class AbstractWorker implements WorkerInterface
 
     }
 
-    public function onRetry($jobId, array $data, $executeMicroTime)
+    public function onRetry($jobId, array $data, $pri, $delay, $executeMicroTime)
     {
 
     }
 
-    public function onBury($jobId, array $data, $executeMicroTime)
+    public function onBury($jobId, array $data, $pri, $executeMicroTime)
     {
 
     }
