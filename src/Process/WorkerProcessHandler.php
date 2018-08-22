@@ -108,8 +108,8 @@ class WorkerProcessHandler
         try {
             $result = $this->worker->execute($jobId, json_decode($data, true));
         } catch (\Exception $e) {
-            $this->logger->error("worker#{$this->process->pid} tube#{$this->tubeName} execute job#{$jobId} failed, error: {$e->getMessage()}", $data);
-
+            $this->beanstalk->bury($jobId, 1024);
+            $this->logger->error("worker#{$this->process->pid} tube#{$this->tubeName} execute job#{$jobId} failed and buried, error: {$e->getMessage()}", $data);
             return;
         }
 
@@ -118,28 +118,20 @@ class WorkerProcessHandler
         $delay = $result['delay'] ?? 3;
         switch ($code) {
             case WorkerInterface::FINISH:
-                if ($this->beanstalk->delete($jobId)) {
-                    $this->logger->info("worker#{$this->process->pid} tube#{$this->tubeName} execute job#{$jobId} finished");
-                } else {
-                    $this->logger->warning("worker#{$this->process->pid} tube#{$this->tubeName} execute job#{$jobId} finished, but delete job failed");
-                }
+                $this->beanstalk->delete($jobId);
+                $this->logger->info("worker#{$this->process->pid} tube#{$this->tubeName} execute job#{$jobId} finished");
                 break;
             case WorkerInterface::RETRY:
-                if ($this->beanstalk->release($jobId, $pri, $delay)) {
-                    $this->logger->info("worker#{$this->process->pid} tube#{$this->tubeName} execute job#{$jobId} once, retry success");
-                } else {
-                    $this->logger->warning("worker#{$this->process->pid} tube#{$this->tubeName} execute job#{$jobId} once, retry failed");
-                }
+                $this->beanstalk->release($jobId, $pri, $delay);
+                $this->logger->info("worker#{$this->process->pid} tube#{$this->tubeName} execute job#{$jobId} once and retrying");
                 break;
             case WorkerInterface::BURY:
-                if ($this->beanstalk->bury($jobId, $pri)) {
-                    $this->logger->info("worker#{$this->process->pid} tube#{$this->tubeName} execute job#{$jobId} once, bury success");
-                } else {
-                    $this->logger->warning("worker#{$this->process->pid} tube#{$this->tubeName} execute job#{$jobId} once, bury failed");
-                }
+                $this->beanstalk->bury($jobId, $pri);
+                $this->logger->info("worker#{$this->process->pid} tube#{$this->tubeName} execute job#{$jobId} once and buried");
                 break;
             default:
-                $this->logger->warning("worker#{$this->process->pid} tube#{$this->tubeName} execute job#{$jobId} result is invalid", $result);
+                $this->beanstalk->bury($jobId, $pri);
+                $this->logger->warning("worker#{$this->process->pid} tube#{$this->tubeName} execute job#{$jobId} result is invalid, job buried", $result);
                 break;
         }
     }
