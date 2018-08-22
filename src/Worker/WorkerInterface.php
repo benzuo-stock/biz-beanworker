@@ -22,4 +22,12 @@ interface WorkerInterface
      *               ]
      */
     public function execute($jobId, array $data);
+
+    public function onFinish($jobId, array $data, $executeMicroTime);
+
+    public function onRetry($jobId, array $data, $pri, $delay, $executeMicroTime);
+
+    public function onBury($jobId, array $data, $pri, $executeMicroTime);
+
+    public function onError($jobId, array $data, $message);
 }

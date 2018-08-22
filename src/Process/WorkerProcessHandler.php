@@ -103,36 +103,54 @@ class WorkerProcessHandler
         return $job;
     }
 
-    private function executeJob($jobId, $data)
+    private function executeJob($jobId, $jobBody)
     {
+        $startTime = $this->getMicroTime();
+
+        $data = json_decode($jobBody, true);
         try {
-            $result = $this->worker->execute($jobId, json_decode($data, true));
+            $result = $this->worker->execute($jobId, $data);
         } catch (\Exception $e) {
             $this->beanstalk->bury($jobId, 1024);
-            $this->logger->error("worker#{$this->process->pid} tube#{$this->tubeName} execute job#{$jobId} failed and buried, error: {$e->getMessage()}", $data);
+
+            $message = "worker#{$this->process->pid} tube#{$this->tubeName} execute job#{$jobId} failed and buried, error: {$e->getMessage()}";
+            $this->logger->error($message, $data);
+            $this->worker->onError($jobId, $data, $message);
+
             return;
         }
 
-        $code = $result['code'] ?? 0;
+        $code = $result['code'] ?? -1;
         $pri = $result['pri'] ?? 1024;
         $delay = $result['delay'] ?? 3;
         switch ($code) {
             case WorkerInterface::FINISH:
                 $this->beanstalk->delete($jobId);
+
                 $this->logger->info("worker#{$this->process->pid} tube#{$this->tubeName} execute job#{$jobId} finished");
+                $this->worker->onFinish($jobId, $data, $startTime - $this->getMicroTime());
+
                 break;
             case WorkerInterface::RETRY:
                 $this->beanstalk->release($jobId, $pri, $delay);
+
                 $this->logger->info("worker#{$this->process->pid} tube#{$this->tubeName} execute job#{$jobId} once and retrying");
+                $this->worker->onRetry($jobId, $data, $pri, $delay, $startTime - $this->getMicroTime());
+
                 break;
             case WorkerInterface::BURY:
                 $this->beanstalk->bury($jobId, $pri);
+
                 $this->logger->info("worker#{$this->process->pid} tube#{$this->tubeName} execute job#{$jobId} once and buried");
+                $this->worker->onBury($jobId, $data, $pri, $startTime - $this->getMicroTime());
+
                 break;
             default:
                 $this->beanstalk->bury($jobId, $pri);
-                $this->logger->warning("worker#{$this->process->pid} tube#{$this->tubeName} execute job#{$jobId} result is invalid, job buried", $result);
-                break;
+
+                $message = "worker#{$this->process->pid} tube#{$this->tubeName} execute job#{$jobId} result#{$result} is invalid, job buried";
+                $this->logger->error($message);
+                $this->worker->onError($jobId, $data, $message);
         }
     }
 
@@ -149,9 +167,7 @@ class WorkerProcessHandler
             'logger' => $this->logger,
         ], $this->container['options']);
 
-        $client = new Client($options);
-
-        return $client;
+        return new Client($options);
     }
 
     /**
@@ -162,5 +178,10 @@ class WorkerProcessHandler
     private function initWorker($workerClass)
     {
         return new $workerClass($this->container);
+    }
+
+    private function getMicroTime()
+    {
+        return round(microtime(true) * 1000);
     }
 }
