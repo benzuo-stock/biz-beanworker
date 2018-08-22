@@ -139,7 +139,7 @@ class WorkerProcessHandler
                     $this->logger->warning("worker#{$this->process->pid} tube#{$this->tubeName} execute job#{$jobId} once, retry failed");
                 }
 
-                $this->worker->onRetry($jobId, $data, $startTime - $this->getMicroTime());
+                $this->worker->onRetry($jobId, $data, $pri, $delay, $startTime - $this->getMicroTime());
 
                 break;
             case WorkerInterface::BURY:
@@ -149,7 +149,7 @@ class WorkerProcessHandler
                     $this->logger->warning("worker#{$this->process->pid} tube#{$this->tubeName} execute job#{$jobId} once, bury failed");
                 }
 
-                $this->worker->onBury($jobId, $data, $startTime - $this->getMicroTime());
+                $this->worker->onBury($jobId, $data, $pri, $startTime - $this->getMicroTime());
 
                 break;
             default:
