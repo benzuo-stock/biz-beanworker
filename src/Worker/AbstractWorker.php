@@ -22,6 +22,26 @@ abstract class AbstractWorker implements WorkerInterface
 
     abstract public function execute($jobId, array $data);
 
+    public function onFinish($jobId, array $data, $executeMicroTime)
+    {
+
+    }
+
+    public function onRetry($jobId, array $data, $executeMicroTime)
+    {
+
+    }
+
+    public function onBury($jobId, array $data, $executeMicroTime)
+    {
+
+    }
+
+    public function onError($jobId, array $data, $message)
+    {
+
+    }
+
     protected function finish()
     {
         return ['code' => self::FINISH];
