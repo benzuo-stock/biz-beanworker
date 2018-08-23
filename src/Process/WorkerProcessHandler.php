@@ -128,21 +128,21 @@ class WorkerProcessHandler
                 $this->beanstalk->delete($jobId);
 
                 $this->logger->info("worker#{$this->process->pid} tube#{$this->tubeName} execute job#{$jobId} finished");
-                $this->worker->onFinish($jobId, $data, $startTime - $this->getMicroTime());
+                $this->worker->onFinish($jobId, $data, $this->getMicroTime() - $startTime);
 
                 break;
             case WorkerInterface::RETRY:
                 $this->beanstalk->release($jobId, $pri, $delay);
 
                 $this->logger->info("worker#{$this->process->pid} tube#{$this->tubeName} execute job#{$jobId} once and retrying");
-                $this->worker->onRetry($jobId, $data, $pri, $delay, $startTime - $this->getMicroTime());
+                $this->worker->onRetry($jobId, $data, $pri, $delay, $this->getMicroTime() - $startTime);
 
                 break;
             case WorkerInterface::BURY:
                 $this->beanstalk->bury($jobId, $pri);
 
                 $this->logger->info("worker#{$this->process->pid} tube#{$this->tubeName} execute job#{$jobId} once and buried");
-                $this->worker->onBury($jobId, $data, $pri, $startTime - $this->getMicroTime());
+                $this->worker->onBury($jobId, $data, $pri, $this->getMicroTime() - $startTime);
 
                 break;
             default:
