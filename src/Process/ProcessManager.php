@@ -44,9 +44,9 @@ class ProcessManager
         unlink($this->pidFile);
     }
 
-    public static function createProcess(callable $callback)
+    public static function createProcess(callable $callback, $redirectStdinStdout = false)
     {
-        return new swoole_process($callback);
+        return new swoole_process($callback, $redirectStdinStdout);
     }
 
     public static function setProcessName($name)

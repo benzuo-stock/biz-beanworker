@@ -85,14 +85,15 @@ class MasterProcessHandler
             ProcessManager::setProcessName("{$this->projectId} beanworker: worker {$tube}");
             $workerProcessHandler = new WorkerProcessHandler($process, $this->container, $tube, $workerClass);
             $workerProcessHandler->start();
-        });
+        }, true);
 
         $workerProcess->start();
-        // swoole_event_add($workerProcess->pipe, function ($pipe) use ($tube, $workerProcess) {
-        //     $resp = $workerProcess->read();
-        //     echo "worker#{$workerProcess->pid} tube#{$tube} received: {$resp} {$pipe} \n";
-        //     $this->logger->info("worker#{$workerProcess->pid} tube#{$tube} received: {$resp} {$pipe}");
-        // });
+
+        //write output info of XxxWorker into log, especially for exception
+        swoole_event_add($workerProcess->pipe, function ($pipe) use ($tube, $workerProcess) {
+            $resp = $workerProcess->read();
+            $this->logger->info("worker#{$workerProcess->pid} tube#{$tube} pipe#{$pipe} received: {$resp}");
+        });
 
         // $workerProcess->pid property will be available after process start
         $this->workerProcesses[$workerProcess->pid] = [

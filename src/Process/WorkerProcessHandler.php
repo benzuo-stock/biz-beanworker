@@ -182,6 +182,6 @@ class WorkerProcessHandler
 
     private function getMicroTime()
     {
-        return round(microtime(true) * 1000);
+        return (int) round(microtime(true) * 1000);
     }
 }
