@@ -35,18 +35,18 @@ class BeanWorkerBootstrap
         $container['worker.process_manager'] = function () {
             return new ProcessManager(realpath($this->biz['data_directory']).'/beanworker.pid');
         };
-        $container['worker.logger'] = $container->factory(function () use ($container) {
-            return new Logger('beanworker_worker', [new StreamHandler(realpath($container['biz']['log_directory']).'/beanworker_worker'.date('Ymd').'.log')]);
-        });
+        $container['worker.logger'] = function () use ($container) {
+            return new Logger('beanworker_worker', [new StreamHandler(realpath($container['biz']['log_directory']).'/beanworker_worker.log')]);
+        };
 
         $container['metric.enabled'] = empty($metricOptions['enabled']) ? 0 : 1;
         $container['metric.port'] = $metricOptions['port'] ?? 9527;
         $container['metric.process_manager'] = function () {
             return new ProcessManager(realpath($this->biz['data_directory']).'/beanworker_metric.pid');
         };
-        $container['metric.logger'] = $container->factory(function () use ($container) {
-            return new Logger('beanworker_metric', [new StreamHandler(realpath($container['biz']['log_directory']).'/beanworker_metric'.date('Ymd').'.log')]);
-        });
+        $container['metric.logger'] = function () use ($container) {
+            return new Logger('beanworker_metric', [new StreamHandler(realpath($container['biz']['log_directory']).'/beanworker_metric.log')]);
+        };
 
         //force disable metric exporter in OSX, as OSX cannot modify process name
         if (false !== strpos(php_uname(), 'Darwin')) {

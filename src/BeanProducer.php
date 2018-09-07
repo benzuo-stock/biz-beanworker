@@ -40,6 +40,11 @@ class BeanProducer
         return $this->proxy('kickJob', [$jobId]);
     }
 
+    public function deleteJob($jobId)
+    {
+        return $this->proxy('delete', [$jobId]);
+    }
+
     public function stats()
     {
         return $this->proxy('stats');
