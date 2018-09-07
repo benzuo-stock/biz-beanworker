@@ -73,10 +73,7 @@ class BeanWorker
 
         $masterPid = $masterProcess->start();
 
-        $workerPIDs = MasterProcessHandler::getWorkerPIDs($this->projectId, $masterPid);
-        $workerCount = \count($workerPIDs);
-        $workerPIDs = implode(',', $workerPIDs);
-        echo "beanworker started, master#{$masterProcess->pid}, workers({$workerCount})#{$workerPIDs} \n";
+        echo "beanworker started, master#{$masterPid}\n";
 
         if ($this->container['metric.enabled']) {
             $metricProcess = ProcessManager::createProcess(function ($process) {
@@ -119,7 +116,7 @@ class BeanWorker
 
         } else {
             echo "WARNING: workers are not running.\n";
-            $this->logger->warning("WARNING: workers are not running");
+            $this->logger->warning('WARNING: workers are not running');
         }
 
         if ($this->container['metric.enabled']) {

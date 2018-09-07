@@ -13,7 +13,6 @@ interface WorkerInterface
     /**
      * @param int $jobId
      * @param array $data (json to array)
-     *
      * @return array
      *               [
      *               code => WorkerInterface::RETRY,
@@ -22,6 +21,8 @@ interface WorkerInterface
      *               ]
      */
     public function execute($jobId, array $data);
+
+    public function beforeExecute($jobId, array $data);
 
     public function onFinish($jobId, array $data, $executeMicroTime);
 

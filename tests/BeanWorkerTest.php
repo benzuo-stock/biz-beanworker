@@ -24,6 +24,7 @@ class BeanWorkerTest extends TestCase
 
     public function testStart()
     {
+        sleep(1);
         $beanWorker = new BeanWorker(static::getContainer());
 
         $this->assertEquals(true, $beanWorker->processManager->isRunning());

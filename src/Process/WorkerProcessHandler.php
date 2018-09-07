@@ -93,8 +93,6 @@ class WorkerProcessHandler
     {
         $job = $this->beanstalk->reserve($this->container['worker.reserve_timeout']);
         if (!$job) {
-            $this->logger->error("worker#{$this->process->pid} tube#{$this->tubeName} reserve job failed");
-
             return false;
         }
 
@@ -109,6 +107,7 @@ class WorkerProcessHandler
 
         $data = json_decode($jobBody, true);
         try {
+            $this->worker->beforeExecute($jobId, $data);
             $result = $this->worker->execute($jobId, $data);
         } catch (\Exception $e) {
             $this->beanstalk->bury($jobId, 1024);

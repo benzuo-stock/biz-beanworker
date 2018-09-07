@@ -22,6 +22,11 @@ abstract class AbstractWorker implements WorkerInterface
 
     abstract public function execute($jobId, array $data);
 
+    public function beforeExecute($jobId, array $data)
+    {
+
+    }
+
     public function onFinish($jobId, array $data, $executeMicroTime)
     {
 
