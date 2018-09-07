@@ -60,11 +60,10 @@ class MetricProcessHandler
         $pid = posix_getpid();
         $this->processManager->savePid($pid);
 
-        echo "metric##{$pid} started...\n";
+        echo "metric#{$pid} started...\n";
         $this->logger->info("metric#{$pid} started.");
 
         $server->on('request', function ($request, $response) {
-            $this->logger->info(json_encode($request->header).json_encode($request->server));
             if ('/metrics' === $request->server['request_uri']) {
                 $response->header('Content-Type', 'text/plain; version=0.0.4');
                 $response->end($this->createMetricsResponse());
