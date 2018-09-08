@@ -114,7 +114,7 @@ class WorkerProcessHandler
 
             $message = "worker#{$this->process->pid} tube#{$this->tubeName} execute job#{$jobId} failed and buried, error: {$e->getMessage()}";
             $this->logger->error($message, $data);
-            $this->worker->onError($jobId, $data, $message);
+            $this->worker->onError($jobId, $data, ['error' => $message], $this->getMicroTime() - $startTime);
 
             return;
         }
@@ -122,26 +122,27 @@ class WorkerProcessHandler
         $code = $result['code'] ?? -1;
         $pri = $result['pri'] ?? 1024;
         $delay = $result['delay'] ?? 3;
+        $resp = $result['resp'] ?? [];
         switch ($code) {
             case WorkerInterface::FINISH:
                 $this->beanstalk->delete($jobId);
 
                 $this->logger->info("worker#{$this->process->pid} tube#{$this->tubeName} execute job#{$jobId} finished");
-                $this->worker->onFinish($jobId, $data, $this->getMicroTime() - $startTime);
+                $this->worker->onFinish($jobId, $data, $resp, $this->getMicroTime() - $startTime);
 
                 break;
             case WorkerInterface::RETRY:
                 $this->beanstalk->release($jobId, $pri, $delay);
 
                 $this->logger->info("worker#{$this->process->pid} tube#{$this->tubeName} execute job#{$jobId} once and retrying");
-                $this->worker->onRetry($jobId, $data, $pri, $delay, $this->getMicroTime() - $startTime);
+                $this->worker->onRetry($jobId, $data, $resp, $this->getMicroTime() - $startTime);
 
                 break;
             case WorkerInterface::BURY:
                 $this->beanstalk->bury($jobId, $pri);
 
                 $this->logger->info("worker#{$this->process->pid} tube#{$this->tubeName} execute job#{$jobId} once and buried");
-                $this->worker->onBury($jobId, $data, $pri, $this->getMicroTime() - $startTime);
+                $this->worker->onBury($jobId, $data, $resp, $this->getMicroTime() - $startTime);
 
                 break;
             default:
@@ -149,7 +150,7 @@ class WorkerProcessHandler
 
                 $message = "worker#{$this->process->pid} tube#{$this->tubeName} execute job#{$jobId} result#{$result} is invalid, job buried";
                 $this->logger->error($message);
-                $this->worker->onError($jobId, $data, $message);
+                $this->worker->onError($jobId, $data, ['error' => $message], $this->getMicroTime() - $startTime);
         }
     }
 

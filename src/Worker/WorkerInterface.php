@@ -24,11 +24,11 @@ interface WorkerInterface
 
     public function beforeExecute($jobId, array $data);
 
-    public function onFinish($jobId, array $data, $executeMicroTime);
+    public function onFinish($jobId, array $data, array $resp, $executeMicroTime);
 
-    public function onRetry($jobId, array $data, $pri, $delay, $executeMicroTime);
+    public function onRetry($jobId, array $data, array $resp, $executeMicroTime);
 
-    public function onBury($jobId, array $data, $pri, $executeMicroTime);
+    public function onBury($jobId, array $data, array $resp, $executeMicroTime);
 
-    public function onError($jobId, array $data, $message);
+    public function onError($jobId, array $data, array $resp, $executeMicroTime);
 }

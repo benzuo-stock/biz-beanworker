@@ -27,38 +27,38 @@ abstract class AbstractWorker implements WorkerInterface
 
     }
 
-    public function onFinish($jobId, array $data, $executeMicroTime)
+    public function onFinish($jobId, array $data, array $resp, $executeMicroTime)
     {
 
     }
 
-    public function onRetry($jobId, array $data, $pri, $delay, $executeMicroTime)
+    public function onRetry($jobId, array $data, array $resp, $executeMicroTime)
     {
 
     }
 
-    public function onBury($jobId, array $data, $pri, $executeMicroTime)
+    public function onBury($jobId, array $data, array $resp, $executeMicroTime)
     {
 
     }
 
-    public function onError($jobId, array $data, $message)
+    public function onError($jobId, array $data, array $resp, $executeMicroTime)
     {
 
     }
 
-    protected function finish()
+    protected function finish(array $resp = [])
     {
-        return ['code' => self::FINISH];
+        return ['code' => self::FINISH, 'resp' => $resp];
     }
 
-    protected function retry($pri = 1024, $delay = 3)
+    protected function retry(array $resp = [], $pri = 1024, $delay = 3)
     {
-        return ['code' => self::RETRY, 'pri' => $pri, 'delay' => $delay];
+        return ['code' => self::RETRY, 'pri' => $pri, 'delay' => $delay, 'resp' => $resp];
     }
 
-    protected function bury($pri = 1024)
+    protected function bury(array $resp = [], $pri = 1024)
     {
-        return ['code' => self::BURY, 'pri' => $pri];
+        return ['code' => self::BURY, 'pri' => $pri, 'resp' => $resp];
     }
 }
